@@ -16,22 +16,13 @@ openai.api_key = OPENAI_API_KEY
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message = update.message
 
-    # Pastikan ini dari grup dan topik yang tepat
-    if message and message.chat.id == TARGET_GROUP_ID and message.message_thread_id == TANYA_AI_THREAD_ID:
-        try:
-            user_text = message.text
+    # Cetak ID Grup & Thread
+    print("Chat ID:", message.chat.id)
+    print("Thread ID:", message.message_thread_id)
+    print("User Text:", message.text)
 
-            response = openai.ChatCompletion.create(
-                model="gpt-3.5-turbo",
-                messages=[{"role": "user", "content": user_text}]
-            )
+    await message.reply_text("📡 Bot aktif. Cek log di Render untuk ID-nya.")
 
-            reply = response['choices'][0]['message']['content']
-            await message.reply_text(reply, message_thread_id=TANYA_AI_THREAD_ID)
-
-        except Exception as e:
-            await message.reply_text("Maaf, terjadi kesalahan saat menjawab.")
-            print("Error:", e)
 
 if __name__ == "__main__":
     app = ApplicationBuilder().token(TELEGRAM_BOT_TOKEN).build()
