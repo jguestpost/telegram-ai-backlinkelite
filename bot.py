@@ -1,34 +1,41 @@
 import os
-from dotenv import load_dotenv
+import openai
 from telegram import Update
-from telegram.ext import ApplicationBuilder, MessageHandler, filters, ContextTypes
-from telegram.constants import ChatAction
-from openai import OpenAI  # ✅ Import class OpenAI yang baru
+from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, MessageHandler, filters
 
-load_dotenv()
-
-TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+# Konfigurasi Token dan API Key
+TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-TARGET_GROUP_ID = int(os.getenv("TARGET_GROUP_ID"))
-TANYA_AI_THREAD_ID = int(os.getenv("TANYA_AI_THREAD_ID"))
+openai.api_key = OPENAI_API_KEY
 
-client = OpenAI(api_key=OPENAI_API_KEY)  # ✅ Gunakan client OpenAI baru
+# Fungsi awal /start
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text("Halo! Kirim pertanyaanmu, aku akan jawab dengan ChatGPT.")
 
+# Fungsi ChatGPT handler
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    message = update.message
+    user_message = update.message.text
 
-    print("Chat ID:", message.chat.id)
-    print("Thread ID:", message.message_thread_id)
-    print("User Text:", message.text)
+    try:
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",  # Atau "gpt-4" jika akunmu support
+            messages=[{"role": "user", "content": user_message}],
+            max_tokens=1000
+        )
 
-    await message.reply_text("📡 Bot aktif. Cek log Render untuk melihat Chat ID dan Thread ID.")
+        reply = response['choices'][0]['message']['content']
+        await update.message.reply_text(reply)
 
-if __name__ == "__main__":
-    app = ApplicationBuilder().token(TELEGRAM_BOT_TOKEN).build()
-    app.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), handle_message))
+    except Exception as e:
+        await update.message.reply_text("Terjadi kesalahan saat menghubungi ChatGPT.")
+        print(e)
 
-print("🤖 Bot GPT is running...")
+# Jalankan bot
+if __name__ == '__main__':
+    app = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
 
-# Hanya aktif polling jika TIDAK di Render
-if os.getenv("RENDER") != "true":
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+
+    print("Bot siap jalan!")
     app.run_polling()
