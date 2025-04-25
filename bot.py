@@ -10,32 +10,24 @@ openai.api_key = OPENAI_API_KEY
 
 # Fungsi awal /start
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("Halo! Kirim pertanyaanmu, aku akan jawab dengan ChatGPT.")
+    await update.message.reply_text("Bot aktif. Kirim pesan ke thread Tanya AI.")
 
-# Fungsi ChatGPT handler
-async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_message = update.message.text
+# ✅ Fungsi untuk ambil group ID dan thread ID
+async def get_thread_info(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    chat_id = update.message.chat.id
+    thread_id = update.message.message_thread_id
+    await update.message.reply_text(f"Group ID: {chat_id}\nThread ID: {thread_id}")
 
-    try:
-        response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",  # Atau "gpt-4" jika akunmu support
-            messages=[{"role": "user", "content": user_message}],
-            max_tokens=1000
-        )
-
-        reply = response['choices'][0]['message']['content']
-        await update.message.reply_text(reply)
-
-    except Exception as e:
-        await update.message.reply_text("Terjadi kesalahan saat menghubungi ChatGPT.")
-        print(e)
 
 # Jalankan bot
 if __name__ == '__main__':
     app = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
 
+    # Tambahkan handler untuk perintah /start
     app.add_handler(CommandHandler("start", start))
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
-    print("Bot siap jalan!")
+    # Tambahkan ini untuk ambil info thread
+    app.add_handler(MessageHandler(filters.TEXT & filters.ChatType.GROUPS, get_thread_info))
+
+    print("Bot aktif... Kirim pesan ke thread Tanya AI untuk lihat ID-nya.")
     app.run_polling()
