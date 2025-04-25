@@ -16,26 +16,12 @@ client = OpenAI(api_key=OPENAI_API_KEY)  # ✅ Gunakan client OpenAI baru
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message = update.message
-    chat_id = message.chat.id
-    thread_id = message.message_thread_id
-    user_text = message.text
 
-    if chat_id == TARGET_GROUP_ID and thread_id == TANYA_AI_THREAD_ID:
-        try:
-            await context.bot.send_chat_action(chat_id=chat_id, action=ChatAction.TYPING)
+    print("Chat ID:", message.chat.id)
+    print("Thread ID:", message.message_thread_id)
+    print("User Text:", message.text)
 
-            # ✅ Panggil API Chat dengan sintaks baru
-            response = client.chat.completions.create(
-                model="gpt-4o",
-                messages=[{"role": "user", "content": user_text}]
-            )
-
-            reply = response.choices[0].message.content
-            await message.reply_text(reply, message_thread_id=thread_id)
-
-        except Exception as e:
-            print("❌ Error:", e)
-            await message.reply_text("⚠️ Maaf, terjadi kesalahan saat menjawab.", message_thread_id=thread_id)
+    await message.reply_text("📡 Bot aktif. Cek log Render untuk melihat Chat ID dan Thread ID.")
 
 if __name__ == "__main__":
     app = ApplicationBuilder().token(TELEGRAM_BOT_TOKEN).build()
