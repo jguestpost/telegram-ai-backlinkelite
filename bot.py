@@ -22,7 +22,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             user_text = message.text
 
             response = openai.ChatCompletion.create(
-                model="GPT-4o",
+                model="GPT -4o",
                 messages=[{"role": "user", "content": user_text}]
             )
 
@@ -36,5 +36,12 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 if __name__ == "__main__":
     app = ApplicationBuilder().token(TELEGRAM_BOT_TOKEN).build()
     app.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), handle_message))
-    print("Bot is running...")
-    app.run_polling()
+
+    print("🤖 Bot is running...")
+
+    # ✅ Cek apakah dijalankan di Render atau lokal
+    if os.getenv("RENDER") == "true":
+        # Jangan pakai polling di Render, nanti kita ganti ke webhook
+        print("🚫 Skip polling karena jalan di Render")
+    else:
+        app.run_polling()
